@@ -83,7 +83,7 @@ order to inspect the content of the resulting clusters.
 To generate a json file readable by `D3.js`, you can run the following bash command:
 
 ```
-$> python visulization.py result.json  input.txt vis.json
+$> python visulization.py result.json  input.txt vis/vis.json
 ```
 
 #### Arguments
