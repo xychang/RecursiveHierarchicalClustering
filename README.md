@@ -10,7 +10,7 @@ This script is used to perform user behavior clustering. Users are put into a hi
 ---
 
 ##Dependency
-Python library `numpy` is required.
+Python library `numpy`, `scipy` is required.
 
 ##Usage
 The main file of this script is `recursiveHierarchicalCustering.py`. 

@@ -70,16 +70,13 @@ def getSidNgramMap(inputPath, sids=None):
     return sid_seq
 
 
-# baseCluster: take in the cluster to be splited
-# baseSum: the distance from each node to other nodes in the same cluster, used to save computation
-# matrix: distance matrix
 def splitCluster((baseCluster, diameter, baseSum, cid), matrix):
     """
     :type baseCluster: List[int]
-          - a list of stream index
+          - take in the cluster to be splited as a list of stream index
     :type diameter: int (not used)
     :type baseSum: List[int]
-          - the distance from each node to other nodes in the same 
+          - the distance from each node to other nodes in the same
             cluster, used to save computation
     :type cid: int (cluster id, not used)
     :type matrix: List[List[int]]
@@ -94,7 +91,8 @@ def splitCluster((baseCluster, diameter, baseSum, cid), matrix):
           - updated baseSum for the baseCluster
     """
     newCluster = []
-    baseNodes = totalNodes = len(baseCluster)    # the number of nodes in the base cluster
+    # the number of nodes in the base cluster
+    baseNodes = totalNodes = len(baseCluster)
     sumDists = []    # store the sum of distance to the base cluster
     newDists = []    # store the sum of distance to the new cluster
 
