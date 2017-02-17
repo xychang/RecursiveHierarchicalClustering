@@ -280,10 +280,10 @@ def mutual_info_feature(cid_pattern_cnt, cid_user_cnt=None,
             tmpB = 1.0*N*B/((A+B)*(B+D))+very_small
             tmpA = 1.0*N*A/((A+B)*(A+C))+very_small
 
-            muinfo = (1.0*D/N) * math.log(tmpD, 2)
-                   + (1.0*C/N) * math.log(tmpC, 2)
-                   + (1.0*B/N) * math.log(tmpB, 2)
-                   + (1.0*A/N) * math.log(tmpA, 2)
+            muinfo = (1.0*D/N) * math.log(tmpD, 2) \
+                + (1.0*C/N) * math.log(tmpC, 2) \
+                + (1.0*B/N) * math.log(tmpB, 2) \
+                + (1.0*A/N) * math.log(tmpA, 2)
 
             scores[feature] = muinfo
         # fout.write('%s\t%s\n' % (cid, cid_user_cnt[cid]))

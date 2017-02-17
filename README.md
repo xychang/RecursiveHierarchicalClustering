@@ -19,7 +19,7 @@ There are two ways of executing the script, through the command line interface o
 ###Command Line Interface
 
 ```
-$> python recursiveHierarchicalCustering.py input.txt output/ 0.05
+$> python recursiveHierarchicalClustering.py input.txt output/ 0.05
 ```
 
 #### Arguments

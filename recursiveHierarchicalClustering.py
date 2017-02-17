@@ -833,11 +833,14 @@ def runDiana(outPath, sid_seq, matrix=None, matrixPath='tmpMatrix.dat',
             # remove sids where the vector have all zeros
             newExclusionSet = set(newExclusions)
             oldLen = len(sids)
-            curFeatures = set(sid_seq[sid].keys())
+
+            def curFeatures(sid):
+                return set(sid_seq[sid].keys())
+
             excludedSids = [sid for sid in sids
-                            if len(curFeatures - newExclusionSet) == 0]
+                            if len(curFeatures(sid) - newExclusionSet) == 0]
             sids = [sid for sid in sids
-                    if len(curFeatures - newExclusionSet) > 0]
+                    if len(curFeatures(sid) - newExclusionSet) > 0]
             # print(oldLen, len(sids), len(excludedFeatures), excludedFeatures)
             # if the cluster size is too small after feature selection,
             # don't cluster it
