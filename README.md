@@ -13,7 +13,7 @@ This script is used to perform user behavior clustering. Users are put into a hi
 Python library `numpy`, `scipy` is required.
 
 ##Usage
-The main file of this script is `recursiveHierarchicalCustering.py`. 
+The main file of this script is `recursiveHierarchicalClustering.py`. 
 There are two ways of executing the script, through the command line interface or through python import.
 
 ###Command Line Interface
@@ -74,7 +74,35 @@ The configuration is stored in `server.json` in the following format:
 * **minPerSlice** specifies the minimum number of users each thread should handle.
 * **server** specifies the server to be used for matrix computation task. If you want to run it locally, specify it as `["localhost"]`.
 
+---
+##Visulization
+Along with the clustering, we also developed a visulization tool based on [D3.js](https://d3js.org/) in
+order to inspect the content of the resulting clusters.
 
+###Generating data file
+To generate a json file readable by `D3.js`, you can run the following bash command:
+
+```
+$> python visulization.py result.json  input.txt vis.json
+```
+
+#### Arguments
+**result.json** is the output file of the recursive hierarchical clustering.
+
+**intput.txt** is the path to a files that contains information for the users to be clustered. Each line is represent a user.
+
+**vis.json** is the path to the final output.
+
+###Running webserver
+To properly display the visulization, you need to set up a web server under folder `vis`:
+```
+$> python -m SimpleHTTPServer
+```
+
+And then by visiting `http://localhost:8000/multi_color.html?json=vis.json` you will be able to look at the visulization for `vis.json`.
+
+
+---
 ## Publication
 Gang Wang, Xinyi Zhang, Shiliang Tang, Haitao Zheng, Ben Y. Zhao. 
 [Unsupervised Clickstream Clustering for User Behavior Analysis](http://www.cs.ucsb.edu/~ravenben/publications/pdf/clickstream-chi16.pdf).

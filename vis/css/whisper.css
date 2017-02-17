@@ -1,0 +1,450 @@
+/*
+A Bootstrap 3.1 affix sidebar template
+from http://bootply.com
+
+This CSS code should follow the 'bootstrap.css'
+in your HTML file.
+
+license: MIT
+author: bootply.com
+*/
+
+.label a{
+  color: white;
+}
+body {
+ /*padding-top:50px;*/
+}
+
+#masthead { 
+ /*min-height:250px;*/
+}
+
+#masthead h1 {
+ font-size: 30px;
+ line-height: 1;
+ padding-top:20px;
+}
+
+#masthead .well {
+ margin-top:8%;
+ margin-bottom: -1em;
+}
+
+@media screen and (min-width: 768px) {
+  #masthead h1 {
+    font-size: 50px;
+  }
+}
+
+.navbar-bright {
+ background-color:#111155;
+ color:#fff;
+}
+
+.affix-top,.affix{
+ position: static;
+}
+
+@media (min-width: 979px) {
+  #sidebar.affix-top {
+    position: static;
+    margin-top:30px;
+    width:228px;
+  }
+  
+  #sidebar.affix {
+    position: fixed;
+    top:70px;
+    width:228px;
+  }
+}
+
+#sidebar li.active {
+  border:0 #eee solid;
+  border-right-width:5px;
+}
+
+/** start css for visulization */
+
+#packed-chart .node {
+  cursor: pointer;
+}
+
+#packed-chart .node.selected {
+  stroke: #000;
+  stroke-width: 3px;
+}
+
+#packed-chart .node--leaf {
+  fill: white;
+}
+
+svg .label {
+  font: 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  text-anchor: middle;
+  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
+}
+
+#packed-chart svg .label,
+#packed-chart .node--root{
+  pointer-events: none;
+}
+
+.detail{
+  border: 3px solid #000;
+  position: absolute;
+  padding: 1em;
+  /*width: 40%; */
+  background: rgba(255,255,255,0.97);
+  white-space: pre-wrap;
+}
+
+.features .label{
+  margin-right: 0em;
+  padding: .4em .6em .5em;
+  font-weight: 400;
+}
+
+.timegap{
+  padding: 0 0.4em;
+}
+
+.features{
+  padding: 0;
+}
+
+ul{
+  list-style-type: none;
+}
+
+.feature svg {
+    margin: 0.4em 0 -0.6em 0.4em;
+}
+
+.btn-comment{
+  float: right;
+  margin-top: -1em;
+}
+
+.summary{
+  padding-top: .5em;
+  padding-bottom: .3em;
+}
+
+.feature .action-PopularFeed{
+  background-color: #49262F;
+}
+
+.feature .action-ViewWhisper{
+  background-color: #A38B76;
+}
+
+.feature .action-Login{
+  background-color: #73747A;
+}
+
+.feature .action-Notification{
+  background-color: #363743;
+}
+
+.feature .action-Heart{
+  background-color: #726669;
+}
+
+.feature .action-Reply{
+  background-color: #5A6396;
+}
+
+.feature .action-Chat{
+  background-color: #382A54;
+}
+
+.feature .action-BannedaUserInChat{
+  background-color: #456D82;
+}
+
+.feature .action-BannedFromChat{
+  background-color: #3C6E6B;
+}
+
+.feature .action-ImageSuggest{
+  background-color: #655280;
+}
+
+.feature .action-ImageSearch{
+  background-color: #895F87;
+}
+
+.feature .action-Flag{
+  background-color: #55567C;
+}
+
+.feature .action-LatestFeed{
+  background-color: #527A91;
+}
+
+.feature .action-SchoolFeed{
+  background-color: #576F87;
+}
+
+.feature .action-WhisperUpload{
+  background-color: #B8878B;
+}
+
+.feature .action-NearbyFeed{
+  background-color: #8D90B0;
+}
+
+#counter{
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: .5em;
+  background: rgba(255,255,255,0.8);
+}
+
+.btn-close{
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+#counter .btn{
+  margin-left: 1em;
+}
+
+.local-avg{
+  color: rgba(255,0,0,1);
+}
+
+.global-avg{
+  color: rgba(0, 128, 128, 1);
+}
+
+.no-wrap{
+  white-space: nowrap;
+}
+
+ul{
+  padding-left: 0;
+}
+
+li{
+  margin-top: .3em;
+}
+
+.feature p.condensed .label{
+  /* this is a hackish fix, I don't know why there is this spacing between labels */
+  margin-right: -.36em;
+}
+
+div.inline{
+  display: inline-block;
+  margin-right: 1em;
+}
+
+#helper svg{
+  margin: 0em 0 -.1em 0em;
+}
+
+.h3{
+  margin-top: 2.5em;
+}
+
+#packed-chart{
+  width: 800px;
+  /*float: left;*/
+}
+
+.table.table-nonfluid{
+  width: auto;
+}
+
+#helper-container{
+  /*z-index: 10;*/
+  /*background-color: rgba(255,255,255,0.97);*/
+  /*float: right;*/
+  /*float: right;*/
+  position: absolute;
+  left: 800px;
+  top: 0;
+  min-width: 5em;
+  max-width: 60em;
+  pointer-events: none;
+}
+#display-helper.bg{
+  background-color: rgba(255,255,255,0.97);
+}
+
+#display-helper{
+  position: absolute;
+  /*float: right;*/
+  /*top: -5em;*/
+  pointer-events: auto;
+  right: 1.5em;
+  padding: 0.5em .6em;
+  font-size: 1.3em;
+  z-index: 11;
+}
+#controller-helper{
+  float: right;
+}
+
+#helper{
+  float: right; 
+  padding: 2em 1.5em 2em 2em;
+  width: 35em;
+  /*max-height: 705px;*/
+  max-height: 435px;
+  /*min-width: 25em;*/
+  /*max-width: 32em;*/
+  background-color: rgba(255,255,255,0.97);
+  /*margin-right: .5em;*/
+  pointer-events: auto;
+  overflow-y: scroll;
+}
+
+#helper.expand{
+  max-height: 830px;
+
+}
+
+::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 7px;
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, .5);
+  -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+}
+
+.main-container{
+  /*position: relative;*/
+}
+.main-container.expand{
+  min-width: 1412px;
+}
+
+.panel-body{
+  padding: 0 5em 0 3em;
+}
+
+ul.decorate{
+  list-style-type: inherit;
+  padding-left: 1.5em;
+}
+
+#helper-more{
+  position: absolute;
+  bottom: 0;
+  text-align: center;
+  width: 35em;
+  right: 0;
+  line-height: 2em;
+  color: rgba(94,142,131,1);
+  font-weight: 500;
+  background-color: rgba(256,256,256, 0.85);
+}
+.disabled{
+  color: #888;
+}
+/*#packed-chart{
+  display: none;
+}*/
+
+#icicle-chart{
+  display: none;
+  margin-top: 1em;
+}
+
+#sunburst-chart{
+  display: none;
+}
+
+#treemap-chart{
+  display: none;
+}
+
+.label-btn{
+  margin-right: 2em;
+}
+
+#icicle-chart rect.selected{
+  stroke: black;
+  stroke-width: 4;
+}
+
+#sunburst-chart path{
+  stroke: rgb(207, 252, 231);
+}
+
+#sunburst-chart path.selected{
+  stroke: black;
+  stroke-width: 2;
+}
+
+#treemap-chart {
+  margin-top: 1em;
+  width: 760px;
+  height: 560px;
+  background: #ddd;
+}
+
+#treemap-chart .grandparent text {
+  font-weight: bold;
+}
+
+#treemap-chart rect {
+  /*fill: none;*/
+  stroke: #fff;
+}
+
+#treemap-chart .grandparent rect {
+  stroke-width: 2px;
+}
+#treemap-chart rect.parent{
+  stroke-width: 4px;
+}
+
+#treemap-chart .grandparent rect {
+  fill: orange;
+}
+
+#treemap-chart .grandparent:hover rect {
+  fill: #ee9700;
+}
+
+#treemap-chart .children rect.parent,
+#treemap-chart .grandparent rect {
+  cursor: pointer;
+}
+
+#treemap-chart .children rect.parent {
+  /*fill: #bbb;
+  fill-opacity: .5;*/
+}
+
+#treemap-chart .children:hover rect.child {
+  /*fill: #bbb;
+  fill-opacity: .5;*/
+}
+
+#controller ul li+li{
+  margin-top: 1em;
+  border-top: 1px solid #bbb;
+}
+
+#controller{
+  margin-bottom: 0;
+  width: 35em;
+  pointer-events: auto;
+  float: right;
+  /*position: absolute;*/
+  /*top: 0px;  */
+  /*left: 800px;*/
+  /*min-width: 5em;*/
+  /*width: 35em;*/
+  /*background-color: rgba(255,255,255,0.97);*/
+}
