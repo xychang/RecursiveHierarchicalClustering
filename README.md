@@ -110,7 +110,7 @@ This requires additional package of `sklearn`.
 
 
 ##Usage
-The main file of this script is `recursiveHierarchicalClustering.py`. 
+The main file of the faster implementation is `recursiveHierarchicalClusteringFast.py`. 
 There are two ways of executing the script, through the command line interface or through python import.
 
 ###Command Line Interface
