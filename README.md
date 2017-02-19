@@ -124,7 +124,7 @@ $> python recursiveHierarchicalClusteringFast.py input.txt output/ 0.05
 import recursiveHierarchicalClustering as rhc
 import recursiveHierarchicalClusteringFast as rhcFast
 data = rhc.getSidNgramMap(inputPath)
-treeData = rhc.runDiana(inputPath, data, outPath)
+treeData = rhcFast.runDiana(inputPath, data, outPath)
 ```
 
 Here treeData is the resulting cluster tree. Same as `output/result.json` if ran through CLI.
