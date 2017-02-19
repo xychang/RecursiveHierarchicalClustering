@@ -101,6 +101,33 @@ $> python -m SimpleHTTPServer
 
 And then by visiting `http://localhost:8000/multi_color.html?json=vis.json` you will be able to look at the visulization for `vis.json`.
 
+---
+## Optimization
+A faster version is also available making better use of `numpy`'s support for 
+matrix computation.
+
+This requires additional package of `sklearn`.
+
+
+##Usage
+The main file of this script is `recursiveHierarchicalClustering.py`. 
+There are two ways of executing the script, through the command line interface or through python import.
+
+###Command Line Interface
+
+```
+$> python recursiveHierarchicalClusteringFast.py input.txt output/ 0.05
+```
+
+### Python Interface
+```python
+import recursiveHierarchicalClustering as rhc
+import recursiveHierarchicalClusteringFast as rhcFast
+data = rhc.getSidNgramMap(inputPath)
+treeData = rhc.runDiana(inputPath, data, outPath)
+```
+
+Here treeData is the resulting cluster tree. Same as `output/result.json` if ran through CLI.
 
 ---
 ## Publication

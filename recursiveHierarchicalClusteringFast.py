@@ -210,12 +210,12 @@ class HCClustering:
         """
         Perform recursive hierarchical clustering
         """
-        global matrixCompTotal, splitTotal, modularityTotal, diaTotal,
+        global matrixCompTotal, splitTotal, modularityTotal, diaTotal
         global excluTotal
 
         M = self.matrix
         self.modularityBasics()
-        print('finished calculating modularityBasics')
+        print('[LOG]: finished calculating modularityBasics')
 
         # child Cid => parent Cid
         clusterHi = []
@@ -274,7 +274,7 @@ class HCClustering:
         sweetSpot = rhc.getSweetSpot(evalResults, 5)
         sweetSpot = sorted(evalResults.keys(),
                            key=lambda x: abs(x - sweetSpot))[0]
-        print('sweetSpot is %d, modularity %f' %
+        print('[LOG]: sweetSpot is %d, modularity %f' %
               (sweetSpot, evalResults[sweetSpot]))
 
         # merge the clusters to the point of sweet spot
@@ -404,19 +404,19 @@ def run(ngramPath, sid_seq, outPath):
     idfMap = rhc.excludeFeatures(rhc.getIdf(sid_seq, idxToSid), [])
 
     matrix = calculateDistance.partialMatrix(
-        idxToSid, idfMap, ngramPath, 'tmp_%sroot' % int(time.time()), 
+        idxToSid, idfMap, ngramPath, 'tmp_%sroot' % int(time.time()),
         outPath, True)
 
-    print('first matrixTime %f' % (time.time() - startTime))
+    print('[LOG]: first matrixTime %f' % (time.time() - startTime))
     matrixCompTotal += time.time() - startTime
 
     hc = HCClustering(
         matrix, sid_seq, outPath, [], idxToSid,
         sizeThreshold=0.05 * len(sid_seq), idfMap=idfMap)
     result = hc.runDiana()
-    json.dump(result, open('%sresult.json' % outPath, 'w'))
 
-    print('totalTime %f' % (time.time() - startTime))
+    print('[STAT]: total clustering time %f' % (time.time() - startTime))
+    return result
 
 
 # store the total time needed to compute distance matrix
@@ -439,7 +439,10 @@ if __name__ == '__main__':
     startTime = time.time()
     sid_seq = rhc.getSidNgramMap(ngramPath)
     print('[LOG]: total users %d' % len(sid_seq))
-    run(ngramPath, sid_seq, outPath)
+    result = run(ngramPath, sid_seq, outPath)
+
+    json.dump(result, open('%sresult.json' % outPath, 'w'))
+
     print('[STAT]: total time %f' % (time.time() - startTime))
     print(('[STAT]: maxtrix com: %f, dismeter: %f, modularity: %f, split: %f, '
            'exclusion: %f') %
