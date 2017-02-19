@@ -1,6 +1,7 @@
 #!/usr/bin/python
 """
-the script to convert the resulting json file from RHC to one suited for visulization
+the script to convert the resulting json file from RHC to one 
+suited for visulization
 
 arguments
 

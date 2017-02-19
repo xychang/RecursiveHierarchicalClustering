@@ -81,8 +81,8 @@ def splitCluster((baseCluster, diameter, baseSum, cid), matrix):
     :type cid: int (cluster id, not used)
     :type matrix: List[List[int]]
           - distance matrix
+
     :rtype: (baseCluster, newCluster, baseSum)
-            (List[int], List[int], List[int])
     :rtype baseCluster: List[int]
           - a list of stream index in one part of the split
     :rtype newCluster: List[int]
@@ -974,5 +974,5 @@ if __name__ == '__main__':
     print('[STAT]: total time %f' % (time.time() - startTime))
     print(('[STAT]: maxtrix com: %f, modularity: %f, split: %f, '
            'exclusion score: %f, exclusion cut: %f') %
-          (matrixCompTotal, modularityTotal, splitTotal, excluTotal, 
+          (matrixCompTotal, modularityTotal, splitTotal, excluTotal,
            excluLTotal))

@@ -1,7 +1,9 @@
 #!/usr/bin/python
 """
 This is used to compute distance matrix
+It makes heavy use of numpy and thus runs faster
 """
+
 import multiprocessing
 import json
 import sys
@@ -13,6 +15,15 @@ import cPickle
 import time
 from array import *
 import datetime
+import gc
+# import cProfile
+# import pstats
+# import line_profiler
+from scipy import sparse
+import numpy as np
+from sklearn import preprocessing
+from sklearn.utils import sparsefuncs
+
 
 config = json.load(open('servers.json'))
 # thread number
@@ -28,69 +39,78 @@ PI_VALUE = 3.141592653589793
 
 
 class myThread (multiprocessing.Process):
+    def __init__(self, threadID, prefix, matrix, sfrom, sto):
+        # pr = line_profiler.LineProfiler()
+        # self.pr = pr
+        # pr.add_function(self.run)
+        # pr.enable()
 
-    def getSeqDist(self, dic1, dic2):
-        """
-        Convert distance into the range of 0 - 100
-        :type dic1: Dict{str: float}
-        :type dic2: Dict{str: float}
-        """
-        dist = 0
-
-        gramset = list(set(dic1.keys()) | set(dic2.keys()))
-        vlist1 = [dic1[g] if g in dic1 else 0 for g in gramset]
-        vlist2 = [dic2[g] if g in dic2 else 0 for g in gramset]
-
-        dist = 1.0001 - angle(vlist1, vlist2)/(PI_VALUE/2)
-
-        if dist <= 0:
-            dist = 0.00000001
-        dist = float(dist)*100
-        weight = int(dist)+1
-        if weight > 100:
-            weight = 100
-        return 100 - weight
-
-    def __init__(self, threadID, prefix, sid_seq, sfrom, sto, idfMap):
         self.threadID = threadID
-        self.sid_seq = sid_seq
+        self.matrix = matrix
         self.sfrom = sfrom
         self.sto = sto
-        self.idfMap = idfMap
-        self.fo = open(prefix+'_'+str(sfrom[0]), 'w')
+        # self.fo = gzip.open(prefix+'_'+str(srange[0])+'-'+
+        # str(srange[1])+'.gz', 'w')
+        self.fo = prefix+'_'+str(sfrom[0])
         multiprocessing.Process.__init__(self)
 
+    # @profile
     def run(self):
+        # pr = cProfile.Profile()
         print '[LOG]: start new thread '+str(self.threadID)
-        for sidFrom in self.sfrom:
-            dic1 = self.sid_seq[sidFrom]
-            dists = []
-            for sidTo in self.sto:
-                if sidFrom == sidTo:
-                    dists.append(0)
-                    continue
-                dic2 = self.sid_seq[sidTo]
+        curTime = time.time()
+        distM = self.matrix[self.sfrom].dot(
+                    self.matrix[self.sto].T).todense()
+        distM = np.maximum(
+            np.arccos(np.minimum(distM, np.ones(distM.shape))) /
+            (PI_VALUE/200)-0.01,
+            np.zeros(distM.shape)).astype(np.int8)
 
-                dists.append(self.getSeqDist(dic1, dic2))
-            self.fo.write('\t'.join(map(str, dists)) + '\n')
-        self.fo.close() 
+        # np.savetxt(self.fo, distM, fmt = '%d')
+        np.save(self.fo + '.npy', distM)
+        print('[LOG]: thread %d finished after %d' %
+              (self.threadID, time.time() - curTime))
+
+        # self.pr.disable()
+        # # sortby = 'cumulative'
+        # # pstats.Stats(pr).strip_dirs().sort_stats(sortby).print_stats()
+        # self.pr.print_stats()
 
 
-def angle(v1, v2):
+def getSparseMatrix(idfMap, fromSids, toSids, inputPath):
     """
-    Compute the polar distance between two vectors 
-    :type v1: List[float]
-    :type v2: List[float]
+    build a sparse matrix based on stream and feature
+    :type idfMap: Dict{str:float}
+          - build a mapping between feature and features idf score
+    :type fromSids: List[int]
+    :type toSids: List[int]
+    :type inputPath: str
+          - the path to the computed pattern dataset
+    :rtype: a numpy matrix
     """
-    norm1 = 0
-    norm2 = 0
-    dotprod = 0
-    for i in range(0, len(v1)):
-        dotprod += v1[i]*v2[i]
-    a = dotprod
-    if a > 1:
-        a = 1
-    return math.acos(a)
+    sidxs, fidxs, values, features = \
+        ngramToMatrix(inputPath, fromSids | toSids)
+
+    featureDict = dict([(features[idx], idx) for idx in range(len(features))])
+
+    matrix = sparse.csr_matrix(
+        (values, (sidxs, fidxs)),
+        shape=(max(sidxs) + 1, len(features)), dtype=np.float64)
+
+    featureWeight = [idfMap[feature] if feature in idfMap else 0
+                     for feature in features]
+
+    # apply idf transformation to the matrix
+    sparsefuncs.inplace_csr_column_scale(matrix, np.array(featureWeight))
+
+    # to maintain consistency with previous implementation, round the
+    # result after applying idf
+    matrix = np.floor(matrix)
+
+    # apply normalization to the matrix
+    matrix = preprocessing.normalize(matrix, copy=False)
+
+    return matrix
 
 
 def calDist(inputPath, sidsPath, outputPath, tmpPrefix='', idfMapPath=None):
@@ -126,26 +146,7 @@ def calDist(inputPath, sidsPath, outputPath, tmpPrefix='', idfMapPath=None):
     else:
         idfMap = None
 
-    sid_seq = {}
-    for line in open(inputPath):
-        # get the sid
-        sid = int(line.split('\t')[0])
-        if (sid not in toSids and sid not in fromSids):
-            continue
-        # get the ngram
-        line = line.strip()
-        line = line.split('\t')[1]
-        # remove the trailing ) so that the spliting would not have an empty tail
-        line = line[:-1].split(')')
-        if idfMap:
-            curSeq = [(item[0], int(idfMap[item[0]] * int(item[1])))
-                      for item in map(lambda x: x.split('('), line)]
-        else:
-            curSeq = [(item[0], int(item[1])) 
-                      for item in map(lambda x: x.split('('), line)]
-        # normalized curSeq by its length
-        lenSeq = math.sqrt(sum([x[1] ** 2 for x in curSeq]))
-        sid_seq[sid] = dict([(x, y / lenSeq) for (x, y) in curSeq])
+    matrix = getSparseMatrix(idfMap, fromSids, toSids, inputPath)
 
     # slice fromSids into THREAD_NUM pieces
     if (len(fromSids) < MIN_SLICE * THREAD_NUM):
@@ -153,13 +154,16 @@ def calDist(inputPath, sidsPath, outputPath, tmpPrefix='', idfMapPath=None):
     else:
         step = len(fromSids) / THREAD_NUM + 1
 
+    print('[LOG]: %s preprocessing takes %.4fs' %
+          (datetime.datetime.now(), time.time() - startTime))
+
     tid = 0
     threads = []
     start = 0
     while start < len(fromSids):
         tid += 1
         thread = myThread(tid, '%s%sdist' % (outputPath, tmpPrefix),
-                          sid_seq, sids[0][start:start+step], sids[1], idfMap)
+                          matrix, sids[0][start:start+step], sids[1])
         thread.start()
         threads.append(thread)
         start += step
@@ -171,7 +175,7 @@ def calDist(inputPath, sidsPath, outputPath, tmpPrefix='', idfMapPath=None):
     # print('everything takes %.4fs' % (time.time() - startTime))
 
 
-def partialMatrix(sids, idfMap, ngramPath, tmpPrefix, outputPath,
+def partialMatrix(sids, idfMap, ngramPath, tmpPrefix, outputPath, 
                   realSid=False):
     """
     at this point the outputPath should have been made
@@ -193,6 +197,18 @@ def partialMatrix(sids, idfMap, ngramPath, tmpPrefix, outputPath,
     if not realSid:
         sids = [x + 1 for x in sids]
     total = len(sids)
+
+    if total < MIN_SLICE:
+        # if the matrix is small enough to be handle by a single thread, avoid
+        # writting files comlete to reduce overhead
+        matrix = getSparseMatrix(idfMap, set(sids), set(sids), ngramPath)
+        distM = matrix[sids].dot(matrix[sids].T).todense()
+        distM = np.maximum(
+            np.arccos(np.minimum(distM, np.ones(distM.shape))) /
+            (PI_VALUE/200)-0.01,
+            np.zeros(distM.shape)).astype(np.int8)
+        return np.array(distM)
+
     if (total < MIN_SERVER * len(servers)):
         step = MIN_SERVER
     else:
@@ -200,6 +216,11 @@ def partialMatrix(sids, idfMap, ngramPath, tmpPrefix, outputPath,
     processes = []
     start = 0
     cPickle.dump(idfMap, open('%s%sidf.pkl' % (outputPath, tmpPrefix), 'w'))
+
+    # if number of tasks is small enough, run it locally
+    if total < MIN_SERVER:
+        servers = ['localhost']
+
     for server in servers:
         if (start >= total):
             break
@@ -212,9 +233,10 @@ def partialMatrix(sids, idfMap, ngramPath, tmpPrefix, outputPath,
                     outputPath, tmpPrefix, '%s%sidf.pkl' %
                     (outputPath, tmpPrefix))
         else:
+            gc.collect()
             processes.append(subprocess.Popen(
                 ['ssh', server,
-                 ('cd %s\npython calculateDistance.py %s %s%ssid_%s.pkl' +
+                 ('cd %s\npython calculateDistanceInt.py %s %s%ssid_%s.pkl' +
                   ' %s %s %s%sidf.pkl') %
                  (os.getcwd(), ngramPath, outputPath,
                   tmpPrefix, server, outputPath, tmpPrefix, outputPath,
@@ -224,15 +246,15 @@ def partialMatrix(sids, idfMap, ngramPath, tmpPrefix, outputPath,
     for process in processes:
         process.wait()
 
-    files = sorted(glob.glob('%s%sdist_*' % (outputPath, tmpPrefix)),
-                   key=lambda x: int(x.split('_')[-1]))
+    print('[LOG]: %s merge started for %s%s' %
+          (datetime.datetime.now(), outputPath, tmpPrefix))
 
-    matrix = []
-    for fname in files:
-        with open(fname) as infile:
-            for line in infile:
-                matrix.append(array('B', map(int, line.split('\t'))))
-    # print('[LOG]: merge finished for %s%s' % (outputPath, tmpPrefix))
+    files = sorted(glob.glob('%s%sdist_*' % (outputPath, tmpPrefix)),
+                   key=lambda x: int(x.split('_')[-1][:-4]))
+
+    matrix = np.concatenate(tuple([np.load(file) for file in files]))
+    print('[LOG]: %s merge finished for %s%s' % (
+        datetime.datetime.now(), outputPath, tmpPrefix))
 
     for fname in glob.glob('%s%s*' % (outputPath, tmpPrefix)):
         os.remove(fname)
@@ -243,70 +265,48 @@ def partialMatrix(sids, idfMap, ngramPath, tmpPrefix, outputPath,
     return matrix
 
 
-def fullMatrix(inputPath, outputPath):
+def ngramToMatrix(inputPath, asids):
     """
-    this function is used to compute the full matrix, shouldn't be called
+    convert all_sid_ngram data into a sparse matrix coordinates
     :type inputPath: str
           - the path to the computed pattern dataset
-    :type outputPath: str
-          - a path to specify where the final result is placed
+    :type asids: List[int]
+          - the users we want to study
     """
-    outputFile = outputPath
-    outputPathDir = outputPath[:outputPath.rfind('/')]
-    try:
-        print('[LOG]: making directory %s' % outputPathDir)
-        os.mkdir(outputPathDir)
-    except:
-        pass
-    servers = json.load(open('servers.json'))
-    # get all the sids
-    sids = [int(line.split('\t')[0]) for line in open(inputPath).readlines()]
-    total = len(sids)
-    if (total < MIN_SERVER * len(servers)):
-        step = MIN_SERVER
-    else:
-        step = total / len(servers) + 1
+    fidx = []
+    values = []
+    sids = []
+    for line in open(inputPath):
+        # get the sid
+        sid = int(line.split('\t')[0])
+        if sid not in asids:
+            continue
+        # get the ngram
+        line = line.strip()
+        line = line.split('\t')[1]
+        # remove the trailing ) so that the spliting would not have an
+        # empty tail
+        line = line[:-1].split(')')
+        curSeq = [(item[0], int(item[1])) for item in
+                  map(lambda x: x.split('('), line)]
 
-    processes = []
-    start = 0
-    for server in servers:
-        if (start >= total):
-            break
-        cPickle.dump([sids[start:start+step], sids], open('%ssid_%s.pkl' %
-                     (outputPath, server), 'w'))
-        print('starting in %s' % server)
-        processes.append(subprocess.Popen(
-            ['ssh', server,
-             'cd %s\npython calculateDistance.py %s %ssid_%s.pkl %s' %
-             (os.getcwd(), inputPath, outputPath, server, outputPath)]))
-        start += step
+        for feature, value in curSeq:
+            # records.append((sid, feature, value))
+            sids.append(sid)
+            fidx.append(feature)
+            values.append(value)
 
-    for process in processes:
-        process.wait()
+    features = set(fidx)
+    features = list(features)
+    featureDict = dict([(features[idx], idx) for idx in range(len(features))])
+    fidx = [featureDict[fid] for fid in fidx]
 
-    print('all finished')
-
-    # find subsetall1k -name "dist_*" | sort -t _ -k 2 -g | xargs cat > subsetall1k/all_dist.dat
-    # subprocess.call(shlex.split('find %s -name "dist_*" | sort -t _ -k 2 -g | xargs cat > %s/all_dist.dat' % (outputPath, outputPath)))
-    files = sorted(glob.glob('%sdist_*' % outputPath), 
-                   key=lambda x: int(x.split('_')[-1]))
-    print(files)
-    with open(outputFile, 'w') as outfile:
-        for fname in files:
-            with open(fname) as infile:
-                for line in infile:
-                    outfile.write(line)
-    print('[LOG]: merge Finished')
-
-    for fname in glob.glob('%sdist_*' % outputPath) + glob.glob('%ssid_*' % outputPath):
-        os.remove(fname)
-
-    print('[LOG]: all tmp files removed')
+    return sids, fidx, values, features
 
 
 if __name__ == "__main__":
-    if (sys.argv[1] == 'full'):
-        fullMatrix(sys.argv[2], sys.argv[3])
+    if (sys.argv[1] == 'coord'):
+        ngramToMatrix(*sys.argv[2:])
     else:
         if (len(sys.argv) > 5):
             calDist(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
