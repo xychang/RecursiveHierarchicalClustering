@@ -9,14 +9,14 @@ This script is used to perform user behavior clustering. Users are put into a hi
 
 ---
 
-##Dependency
+## Dependency
 Python library `numpy`, `scipy` is required.
 
-##Usage
+## Usage
 The main file of this script is `recursiveHierarchicalClustering.py`. 
 There are two ways of executing the script, through the command line interface or through python import.
 
-###Command Line Interface
+### Command Line Interface
 
 ```
 $> python recursiveHierarchicalClustering.py input.txt output/ 0.05
@@ -109,11 +109,11 @@ matrix computation.
 This requires additional package of `sklearn`.
 
 
-##Usage
+## Usage
 The main file of the faster implementation is `recursiveHierarchicalClusteringFast.py`. 
 There are two ways of executing the script, through the command line interface or through python import.
 
-###Command Line Interface
+### Command Line Interface
 
 ```
 $> python recursiveHierarchicalClusteringFast.py input.txt output/ 0.05
