@@ -58,7 +58,7 @@ Here treeData is the resulting cluster tree. Same as `output/result.json` if ran
 	* **exlusions**: a list of top features (ranked) that helps to distinguish the cluster from others.
 	* **exclusionsScore**: the chi-square scores correspond to the top features listed in **exclusions**.
 	
-##Configuration
+## Configuration
 This script is designed to be distributed on multiple machines with shared file system. However, it is also be configured to run locally.
 The configuration is stored in `server.json` in the following format:
 ```javascript
@@ -75,11 +75,11 @@ The configuration is stored in `server.json` in the following format:
 * **server** specifies the server to be used for matrix computation task. If you want to run it locally, specify it as `["localhost"]`.
 
 ---
-##Visulization
+## Visulization
 Along with the clustering, we also developed a visulization tool based on [D3.js](https://d3js.org/) in
 order to inspect the content of the resulting clusters.
 
-###Generating data file
+### Generating data file
 To generate a json file readable by `D3.js`, you can run the following bash command:
 
 ```
@@ -93,7 +93,7 @@ $> python visulization.py result.json  input.txt vis/vis.json
 
 **vis.json** is the path to the final output.
 
-###Running webserver
+### Running webserver
 To properly display the visulization, you need to set up a web server under folder `vis`:
 ```
 $> python -m SimpleHTTPServer
