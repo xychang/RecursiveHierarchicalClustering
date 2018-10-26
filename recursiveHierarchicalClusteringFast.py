@@ -332,7 +332,7 @@ class HCClustering:
                     matrixStart = time.time()
                     matrix = calculateDistance.partialMatrix(
                         sids,
-                        rhc.excludeFeatures(rhc.getIdf(sid_seq, sids),
+                        rhc.excludeFeatures(rhc.getIdf(self.sid_seq, sids),
                                             newExclusions),
                         ngramPath,
                         'tmp_%d' % row[3],
