@@ -129,6 +129,22 @@ treeData = rhcFast.run(inputPath, data, outPath)
 
 Here treeData is the resulting cluster tree. Same as `output/result.json` if ran through CLI.
 
+### Frequently Asked Questions
+1. In the paper, the sequences are modeled with timegap, e.g., `A(g1)B(g2)C(g1)A(g1)B`. Why is there no timegap information in the code sample but are `A`, `B` and `C` instead?
+
+**Answer:**
+
+The code in here is meant to be general-purpose, which allows for arbitrary features beyond action-gap-action. This means, `A` itself is a token for an action-gap-action tuple. For example, an input file representing clickstream features may look like this:
+```
+1    A1A(7)A2C(6)B1A1B(5)
+2    A1A(9)B1C(11)B1A1C(12)A2E(11)
+...
+```
+Here, numbers represent bucktized timegap, whereas alphabetic characters represent actions.
+
+You can checkout [this issue](https://github.com/xychang/RecursiveHierarchicalClustering/issues/2) for more details in terms of visulization.
+
+
 ---
 ## Publication
 Gang Wang, Xinyi Zhang, Shiliang Tang, Haitao Zheng, Ben Y. Zhao. 
