@@ -9,7 +9,7 @@ import math
 import subprocess
 import os
 import glob
-import cPickle
+import pickle
 import time
 from array import *
 import datetime
@@ -61,7 +61,7 @@ class myThread (multiprocessing.Process):
         multiprocessing.Process.__init__(self)
 
     def run(self):
-        print '[LOG]: start new thread '+str(self.threadID)
+        print('[LOG]: start new thread '+str(self.threadID))
         for sidFrom in self.sfrom:
             dic1 = self.sid_seq[sidFrom]
             dists = []
@@ -108,11 +108,11 @@ def calDist(inputPath, sidsPath, outputPath, tmpPrefix='', idfMapPath=None):
           - if the idf for each pattern is already computed, provide a path
           to avoid repeated computation
     """
-    print('[LOG]: %s computing matrix for %s' % (datetime.datetime.now(),
-                                                 sidsPath.split('sid_')[0]))
+    print(('[LOG]: %s computing matrix for %s' % (datetime.datetime.now(),
+                                                 sidsPath.split('sid_')[0])))
     # read the ngram file, generate a node list
     lineNum = 1
-    sids = cPickle.load(open(sidsPath))
+    sids = pickle.load(open(sidsPath,'rb'))
 
     fromSids = set(sids[0])
     # in principle the toSids should be all sids
@@ -122,7 +122,7 @@ def calDist(inputPath, sidsPath, outputPath, tmpPrefix='', idfMapPath=None):
 
     # get the idfMap, if provided
     if (idfMapPath):
-        idfMap = cPickle.load(open(idfMapPath))
+        idfMap = pickle.load(open(idfMapPath,'rb'))
     else:
         idfMap = None
 
@@ -139,10 +139,10 @@ def calDist(inputPath, sidsPath, outputPath, tmpPrefix='', idfMapPath=None):
         line = line[:-1].split(')')
         if idfMap:
             curSeq = [(item[0], int(idfMap[item[0]] * int(item[1])))
-                      for item in map(lambda x: x.split('('), line)]
+                      for item in [x.split('(') for x in line]]
         else:
             curSeq = [(item[0], int(item[1])) 
-                      for item in map(lambda x: x.split('('), line)]
+                      for item in [x.split('(') for x in line]]
         # normalized curSeq by its length
         lenSeq = math.sqrt(sum([x[1] ** 2 for x in curSeq]))
         sid_seq[sid] = dict([(x, y / lenSeq) for (x, y) in curSeq])
@@ -199,13 +199,13 @@ def partialMatrix(sids, idfMap, ngramPath, tmpPrefix, outputPath,
         step = total / len(servers) + 1
     processes = []
     start = 0
-    cPickle.dump(idfMap, open('%s%sidf.pkl' % (outputPath, tmpPrefix), 'w'))
+    pickle.dump(idfMap, open('%s%sidf.pkl' % (outputPath, tmpPrefix), 'wb'))
     for server in servers:
         if (start >= total):
             break
-        cPickle.dump([sids[start:start+step], sids], open('%s%ssid_%s.pkl' %
-                     (outputPath, tmpPrefix, server), 'w'))
-        print('[LOG]: starting in %s for %s' % (server, tmpPrefix))
+        pickle.dump([sids[start:start+step], sids], open('%s%ssid_%s.pkl' %
+                     (outputPath, tmpPrefix, server), 'wb'))
+        print(('[LOG]: starting in %s for %s' % (server, tmpPrefix)))
         if server == 'localhost':
             calDist(ngramPath, '%s%ssid_%s.pkl' %
                     (outputPath, tmpPrefix, server),
@@ -231,14 +231,14 @@ def partialMatrix(sids, idfMap, ngramPath, tmpPrefix, outputPath,
     for fname in files:
         with open(fname) as infile:
             for line in infile:
-                matrix.append(array('B', map(int, line.split('\t'))))
+                matrix.append(array('B', list(map(int, line.split('\t')))))
     # print('[LOG]: merge finished for %s%s' % (outputPath, tmpPrefix))
 
     for fname in glob.glob('%s%s*' % (outputPath, tmpPrefix)):
         os.remove(fname)
     # print('[LOG]: all tmp files removed for %s%s' % (outputPath, tmpPrefix))
-    print('[LOG]: %s matrix computation finished for %s%s' % (
-        datetime.datetime.now(), outputPath, tmpPrefix))
+    print(('[LOG]: %s matrix computation finished for %s%s' % (
+        datetime.datetime.now(), outputPath, tmpPrefix)))
 
     return matrix
 
@@ -254,7 +254,7 @@ def fullMatrix(inputPath, outputPath):
     outputFile = outputPath
     outputPathDir = outputPath[:outputPath.rfind('/')]
     try:
-        print('[LOG]: making directory %s' % outputPathDir)
+        print(('[LOG]: making directory %s' % outputPathDir))
         os.mkdir(outputPathDir)
     except:
         pass
@@ -272,9 +272,9 @@ def fullMatrix(inputPath, outputPath):
     for server in servers:
         if (start >= total):
             break
-        cPickle.dump([sids[start:start+step], sids], open('%ssid_%s.pkl' %
+        pickle.dump([sids[start:start+step], sids], open('%ssid_%s.pkl' %
                      (outputPath, server), 'w'))
-        print('starting in %s' % server)
+        print(('starting in %s' % server))
         processes.append(subprocess.Popen(
             ['ssh', server,
              'cd %s\npython calculateDistance.py %s %ssid_%s.pkl %s' %

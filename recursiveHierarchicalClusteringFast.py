@@ -34,7 +34,7 @@ import sys
 import json
 import time
 # import cProfile
-import cPickle
+import pickle
 import numpy as np
 import recursiveHierarchicalClustering as rhc
 import calculateDistanceInt as calculateDistance
@@ -83,7 +83,7 @@ class HCClustering:
                 maxDist = curMax
         return maxDist
 
-    def splitCluster(self, (baseCluster, diameter, cid)):
+    def splitCluster(self, xxx_todo_changeme):
         """
         :type baseCluster: List[int]
             - take in the cluster to be splited as a list of stream index
@@ -102,6 +102,7 @@ class HCClustering:
         :rtype sumAB: float
             - sum of all pairwise distance between clusterA and clusterB
         """
+        (baseCluster, diameter, cid) = xxx_todo_changeme
         newCluster = []
         # the number of nodes in the base cluster
         baseNodes = totalNodes = len(baseCluster)
@@ -187,7 +188,7 @@ class HCClustering:
             secondEntry += np.sum(sumRowCur) ** 2
         return (firstEntry - secondEntry / m) / m
 
-    def evaluateModularityShift(self, (clusterA, clusterB), sumAB):
+    def evaluateModularityShift(self, xxx_todo_changeme1, sumAB):
         """
         the reasoning is detailed in recursiveHierarchicalClustering.py
         :type clusterA: List[int]
@@ -200,6 +201,7 @@ class HCClustering:
             - sum of all pairwise distance between clusterA and clusterB
         :rtype: float
         """
+        (clusterA, clusterB) = xxx_todo_changeme1
         m = self.sumAll
         firstEntry = (self.maxDistance * len(clusterA) * len(clusterB) - sumAB) 
         secondEntry = np.sum(self.sumEntries[clusterA]) \
@@ -224,7 +226,7 @@ class HCClustering:
         evalResults = {}
 
         cid = 1
-        clusters = [(range(len(self.matrix)), self.maxDistance, cid)]
+        clusters = [(list(range(len(self.matrix))), self.maxDistance, cid)]
 
         # get a mapping from cid => list of row sums for all ids in cluster
         self.sumEntriesMap = {}
@@ -272,10 +274,10 @@ class HCClustering:
 
         # print(evalResults)
         sweetSpot = rhc.getSweetSpot(evalResults, 5)
-        sweetSpot = sorted(evalResults.keys(),
+        sweetSpot = sorted(list(evalResults.keys()),
                            key=lambda x: abs(x - sweetSpot))[0]
-        print('[LOG]: sweetSpot is %d, modularity %f' %
-              (sweetSpot, evalResults[sweetSpot]))
+        print(('[LOG]: sweetSpot is %d, modularity %f' %
+              (sweetSpot, evalResults[sweetSpot])))
 
         # merge the clusters to the point of sweet spot
         clusterMap = dict([(row[2], row) for row in clusters])
@@ -291,7 +293,7 @@ class HCClustering:
             cids.remove(childBCid)
 
         # reconstruct the cluster list after merging
-        clusters = [(x[0], x[1], None, x[2]) for cid, x in clusterMap.items()
+        clusters = [(x[0], x[1], None, x[2]) for cid, x in list(clusterMap.items())
                     if cid in cids]
 
         # get the exclusion map according to the current clustering
@@ -407,7 +409,7 @@ def run(ngramPath, sid_seq, outPath):
         idxToSid, idfMap, ngramPath, 'tmp_%sroot' % int(time.time()),
         outPath, True)
 
-    print('[LOG]: first matrixTime %f' % (time.time() - startTime))
+    print(('[LOG]: first matrixTime %f' % (time.time() - startTime)))
     matrixCompTotal += time.time() - startTime
 
     hc = HCClustering(
@@ -415,7 +417,7 @@ def run(ngramPath, sid_seq, outPath):
         sizeThreshold=0.05 * len(sid_seq), idfMap=idfMap)
     result = hc.runDiana()
 
-    print('[STAT]: total clustering time %f' % (time.time() - startTime))
+    print(('[STAT]: total clustering time %f' % (time.time() - startTime)))
     return result
 
 
@@ -438,12 +440,12 @@ if __name__ == '__main__':
 
     startTime = time.time()
     sid_seq = rhc.getSidNgramMap(ngramPath)
-    print('[LOG]: total users %d' % len(sid_seq))
+    print(('[LOG]: total users %d' % len(sid_seq)))
     result = run(ngramPath, sid_seq, outPath)
 
     json.dump(result, open('%sresult.json' % outPath, 'w'))
 
-    print('[STAT]: total time %f' % (time.time() - startTime))
-    print(('[STAT]: maxtrix com: %f, dismeter: %f, modularity: %f, split: %f, '
+    print(('[STAT]: total time %f' % (time.time() - startTime)))
+    print((('[STAT]: maxtrix com: %f, dismeter: %f, modularity: %f, split: %f, '
            'exclusion: %f') %
-          (matrixCompTotal, diaTotal, modularityTotal, splitTotal, excluTotal))
+          (matrixCompTotal, diaTotal, modularityTotal, splitTotal, excluTotal)))
