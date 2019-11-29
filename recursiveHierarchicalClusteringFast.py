@@ -38,7 +38,7 @@ import pickle
 import numpy as np
 import recursiveHierarchicalClustering as rhc
 import calculateDistanceInt as calculateDistance
-
+import os
 
 class HCClustering:
 
@@ -83,7 +83,7 @@ class HCClustering:
                 maxDist = curMax
         return maxDist
 
-    def splitCluster(self, xxx_todo_changeme):
+    def splitCluster(self, cluster_info):
         """
         :type baseCluster: List[int]
             - take in the cluster to be splited as a list of stream index
@@ -102,7 +102,7 @@ class HCClustering:
         :rtype sumAB: float
             - sum of all pairwise distance between clusterA and clusterB
         """
-        (baseCluster, diameter, cid) = xxx_todo_changeme
+        (baseCluster, diameter, cid) = cluster_info
         newCluster = []
         # the number of nodes in the base cluster
         baseNodes = totalNodes = len(baseCluster)
@@ -188,7 +188,7 @@ class HCClustering:
             secondEntry += np.sum(sumRowCur) ** 2
         return (firstEntry - secondEntry / m) / m
 
-    def evaluateModularityShift(self, xxx_todo_changeme1, sumAB):
+    def evaluateModularityShift(self, clusterAB, sumAB):
         """
         the reasoning is detailed in recursiveHierarchicalClustering.py
         :type clusterA: List[int]
@@ -201,7 +201,7 @@ class HCClustering:
             - sum of all pairwise distance between clusterA and clusterB
         :rtype: float
         """
-        (clusterA, clusterB) = xxx_todo_changeme1
+        (clusterA, clusterB) = clusterAB
         m = self.sumAll
         firstEntry = (self.maxDistance * len(clusterA) * len(clusterB) - sumAB) 
         secondEntry = np.sum(self.sumEntries[clusterA]) \
@@ -432,12 +432,17 @@ diaTotal = 0
 # store the total time needed to find out feature exclusion
 excluTotal = 0
 
+def create_output_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return True
+
 if __name__ == '__main__':
 
     ngramPath = sys.argv[1]
     outPath = sys.argv[2]
     sizeThreshold = float(sys.argv[3]) if len(sys.argv) > 3 else 0.05
-
+    create_output_dir(outPath)
     startTime = time.time()
     sid_seq = rhc.getSidNgramMap(ngramPath)
     print(('[LOG]: total users %d' % len(sid_seq)))

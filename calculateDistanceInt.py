@@ -105,7 +105,7 @@ def getSparseMatrix(idfMap, fromSids, toSids, inputPath):
 
     # to maintain consistency with previous implementation, round the
     # result after applying idf
-    matrix = np.floor(matrix)
+    matrix = matrix.floor()
 
     # apply normalization to the matrix
     matrix = preprocessing.normalize(matrix, copy=False)
