@@ -49,7 +49,7 @@ def getPatternDist(pattern, sids, sid_seq):
     """
     ratios = []
     for sid in sids:
-        totalPattern = sum([x[1] for x in sid_seq[sid].items()])
+        totalPattern = sum([x[1] for x in list(sid_seq[sid].items())])
         currentPattern = sid_seq[sid][pattern] if pattern in sid_seq[sid] else 0
         ratio = float(currentPattern) / totalPattern
         ratios.append(ratio)

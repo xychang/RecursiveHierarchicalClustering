@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 """
 the script to recursively run divisive hierchical clustering
@@ -39,6 +39,7 @@ import os
 import numpy as np
 import calculateDistance
 import mutual_info
+from functools import reduce
 
 
 def getSidNgramMap(inputPath, sids=None):
@@ -66,11 +67,11 @@ def getSidNgramMap(inputPath, sids=None):
         # remove the trailing ) so that the spliting would not have an empty tail
         line = line[:-1].split(')')
         sid_seq[sid] = dict([(item[0], int(item[1]))
-                             for item in map(lambda x: x.split('('), line)])
+                             for item in [x.split('(') for x in line]])
     return sid_seq
 
 
-def splitCluster((baseCluster, diameter, baseSum, cid), matrix):
+def splitCluster(clustervars, matrix):
     """
     :type baseCluster: List[int]
           - take in the cluster to be splited as a list of stream index
@@ -90,6 +91,7 @@ def splitCluster((baseCluster, diameter, baseSum, cid), matrix):
     :rtype baseSum: List[int]
           - updated baseSum for the baseCluster
     """
+    baseCluster, diameter, baseSum, cid = clustervars
     newCluster = []
     # the number of nodes in the base cluster
     baseNodes = totalNodes = len(baseCluster)
@@ -192,7 +194,7 @@ def getIdf(sid_seq, sids):
     feqMap = {}
     total = len(sids)
     for sid in sids:
-        stotal = sum([x[1] for x in sid_seq[sid].items()])
+        stotal = sum([x[1] for x in list(sid_seq[sid].items())])
         for word in sid_seq[sid]:
             freq = sid_seq[sid][word]
             try:
@@ -272,7 +274,7 @@ def LMethod(evalResults):
             minCutoff = cidx
             minResidual = residual1 + residual2
     if minCutoff is None:
-        print('minCutoff is None', evalResults)
+        print(('minCutoff is None', evalResults))
     return evalResults[minCutoff][0]
 
 
@@ -566,13 +568,13 @@ def slidingMaxSweetSpot(evalResults, windowSize=5):
             - the index of the maximum value
     """
     step = 1
-    keys = [x[0] for x in evalResults.items()]
+    keys = [x[0] for x in list(evalResults.items())]
     start = min(keys)  # + 0.5 * windowSize
     end = max(keys)  # - 0.5 * windowSize
     if (start >= end):
         print('[WARNING]: window too large when trying to determine sweetspot')
         return (start + end) / 2
-    maxEval = min([x[1] for x in evalResults.items()])
+    maxEval = min([x[1] for x in list(evalResults.items())])
     maxIdx = None
     while(start <= end):
         evals = [evalResults[idx] for idx in keys
@@ -697,16 +699,16 @@ def runDiana(outPath, sid_seq, matrix=None, matrixPath='tmpMatrix.dat',
                 for row in matrix:
                     fout.write('%s\n' % ('\t'.join(map(str, row))))
                 fout.close()
-            print('computing matrix taking %fs' % (time.time() - matrixStart))
-            print('matrix size %s' % len(matrix))
+            print(('computing matrix taking %fs' % (time.time() - matrixStart)))
+            print(('matrix size %s' % len(matrix)))
             matrixCompTotal += time.time() - matrixStart
         else:
             # read the full distance matrix (after tf-idf)
             for line in open(matrixPath):
-                matrix.append(array('B', map(int, line.split('\t'))))
+                matrix.append(array('B', list(map(int, line.split('\t')))))
                 count += 1
                 if (count % 500 == 0):
-                    print('%d lines read' % count)
+                    print(('%d lines read' % count))
 
     # idf map will later be used in feature selection
     if not idfMap:
@@ -722,7 +724,7 @@ def runDiana(outPath, sid_seq, matrix=None, matrixPath='tmpMatrix.dat',
         totalItems = len(matrix)
 
     cid = 1
-    clusters = [(range(len(matrix)), 100, None, cid)]
+    clusters = [(list(range(len(matrix))), 100, None, cid)]
 
     # child Cid => parent Cid
     clusterHi = []
@@ -790,8 +792,8 @@ def runDiana(outPath, sid_seq, matrix=None, matrixPath='tmpMatrix.dat',
             sweetSpot = clusterNum
         else:
             sweetSpot = getSweetSpot(evalResults)
-            print('[LOG]: split %s into %d clusters (modularity %f)' %
-                  (outPath, sweetSpot, evalResults[sweetSpot]))
+            print(('[LOG]: split %s into %d clusters (modularity %f)' %
+                  (outPath, sweetSpot, evalResults[sweetSpot])))
 
         # merge the clusters to the point of sweet spot
         clusterMap = dict([(row[3], row) for row in clusters])
@@ -946,6 +948,12 @@ def run(sid_seq, outPath, matrixPath, sids, nPath):
     sizeThreshold = 0.05
     return runDiana(outPath, sid_seq, None, matrixPath, sorted(sids))
 
+
+def create_output_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return True
+
 # store the total time needed to compute distance matrix
 matrixCompTotal = 0
 # store the total time needed to compute modularity
@@ -967,12 +975,13 @@ if __name__ == '__main__':
     resultPath = '%sresult.json' % outPath
 
     startTime = time.time()
+    create_output_dir(outPath)
     sid_seq = getSidNgramMap(ngramPath)
-    print('[LOG]: total users %d' % len(sid_seq))
+    print(('[LOG]: total users %d' % len(sid_seq)))
     treeData = runDiana(outPath, sid_seq, matrixPath=matrixPath)
     json.dump(treeData, open(resultPath, 'w'))
-    print('[STAT]: total time %f' % (time.time() - startTime))
-    print(('[STAT]: maxtrix com: %f, modularity: %f, split: %f, '
+    print(('[STAT]: total time %f' % (time.time() - startTime)))
+    print((('[STAT]: maxtrix com: %f, modularity: %f, split: %f, '
            'exclusion score: %f, exclusion cut: %f') %
           (matrixCompTotal, modularityTotal, splitTotal, excluTotal,
-           excluLTotal))
+           excluLTotal)))

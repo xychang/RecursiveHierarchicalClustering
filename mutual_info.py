@@ -1,12 +1,13 @@
 import math
 import numpy as np
 import scipy.stats
-import cPickle
+import pickle
 import json
 import sys
 import cProfile
 import pstats
-import StringIO
+import io
+from functools import reduce
 
 
 def avgStdWithZero(l, numZero):
@@ -182,7 +183,7 @@ def chi_square_feature(cid_pattern_list, cid_user_cnt,
             scores[pattern] = chi_square(baselist, usersLeftBase,
                                          curList, usersLeft)
 
-        resultMap[cid] = sorted(scores.items(),
+        resultMap[cid] = sorted(list(scores.items()),
                                 key=lambda x: x[1], reverse=True)
         if printEval:
             fout.write('%s\t%s\n' % (cid, cid_user_cnt[cid]))
@@ -191,9 +192,9 @@ def chi_square_feature(cid_pattern_list, cid_user_cnt,
             fout.write('--------------------------\n')
             fout.flush()
 
-            print('%s\t%s' % (cid, cid_user_cnt[cid]))
+            print(('%s\t%s' % (cid, cid_user_cnt[cid])))
             for (feature, score) in resultMap[cid][:50]:
-                print('%s\t%s' % (feature, score))
+                print(('%s\t%s' % (feature, score)))
             print('--------------------------')
 
     return resultMap
@@ -220,7 +221,7 @@ def mutual_info_feature(cid_pattern_cnt, cid_user_cnt=None,
         for cid in cid_pattern_cnt:
             # TODO: sum or max or avg pattern num * user num?
             cid_user_cnt[cid] = \
-                sum([x[1] for x in cid_pattern_cnt[cid].items()])
+                sum([x[1] for x in list(cid_pattern_cnt[cid].items())])
 
     # compute a tmp dictionary:
     pattern_cid_cnt = {}
@@ -233,11 +234,11 @@ def mutual_info_feature(cid_pattern_cnt, cid_user_cnt=None,
 
     total_pattern_cnt = {}
     for pattern in pattern_cid_cnt:
-        total_pattern_cnt[pattern] = sum([x[1] for x in pattern_cid_cnt[pattern].items()])
+        total_pattern_cnt[pattern] = sum([x[1] for x in list(pattern_cid_cnt[pattern].items())])
 
-    print 'how many patterns', len(pattern_cid_cnt)
+    print('how many patterns', len(pattern_cid_cnt))
 
-    print 'mutual information...'
+    print('mutual information...')
 
     """
     # I (feature word, class c):
@@ -259,7 +260,7 @@ def mutual_info_feature(cid_pattern_cnt, cid_user_cnt=None,
     total number of node per-class, per-feature: class_featurecount
     """
 
-    N = totalFeatures = sum([x[1] for x in cid_user_cnt.items()])
+    N = totalFeatures = sum([x[1] for x in list(cid_user_cnt.items())])
 
     resultMap = {}
     for cid in cid_pattern_cnt:
@@ -287,7 +288,7 @@ def mutual_info_feature(cid_pattern_cnt, cid_user_cnt=None,
 
             scores[feature] = muinfo
         # fout.write('%s\t%s\n' % (cid, cid_user_cnt[cid]))
-        resultMap[cid] = sorted(scores.items(),
+        resultMap[cid] = sorted(list(scores.items()),
                                 key=lambda x: x[1], reverse=True)
         # fout.write('%s\t%s\n' % (feature, score))
         # fout.write('--------------------------\n')
@@ -312,9 +313,9 @@ def print_mutual_info(fname, cid_user_cnt, cid_pattern_cnt):
             if w not in pattern_cid_cnt: pattern_cid_cnt[w] = {}
             pattern_cid_cnt[w][cid] = cnt
 
-    print 'how many patterns', len(pattern_cid_cnt)
+    print('how many patterns', len(pattern_cid_cnt))
 
-    print 'mutual information...'
+    print('mutual information...')
     # mutual information
     """
     # I (feature word, class c):
@@ -339,8 +340,8 @@ def print_mutual_info(fname, cid_user_cnt, cid_pattern_cnt):
     for cid in cid_user_cnt:
         N+= cid_user_cnt[cid]
 
-    print 'total N', N
-    print 'how many class?', len(cid_user_cnt)
+    print('total N', N)
+    print('how many class?', len(cid_user_cnt))
 
     fo = open(fname,'w')
     for cid in cid_pattern_cnt:
@@ -384,7 +385,7 @@ def print_mutual_info(fname, cid_user_cnt, cid_pattern_cnt):
                 print 'A', (1.0*A/N) * math.log(tmpA,2)
             """
 
-        sortlist = sortlist = sorted(w_mutual.iteritems(), key=lambda (k,v): (v,k))
+        sortlist = sortlist = sorted(iter(w_mutual.items()), key=lambda k_v: (k_v[1],k_v[0]))
         sortlist.reverse()
         tmpcnt = 0
         # for understanding purpuse, let's print D and C as well
@@ -396,7 +397,7 @@ def print_mutual_info(fname, cid_user_cnt, cid_pattern_cnt):
             fo.write('##%s\t%s\t%s\t%s\t%s\n' %(cid, w, cnt, D, C))
             tmpcnt += 1
             if tmpcnt>10: break
-        print 'done for cluster', cid
+        print('done for cluster', cid)
     fo.close()
 
     return

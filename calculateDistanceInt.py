@@ -11,7 +11,7 @@ import math
 import subprocess
 import os
 import glob
-import cPickle
+import pickle
 import time
 from array import *
 import datetime
@@ -57,7 +57,7 @@ class myThread (multiprocessing.Process):
     # @profile
     def run(self):
         # pr = cProfile.Profile()
-        print '[LOG]: start new thread '+str(self.threadID)
+        print('[LOG]: start new thread '+str(self.threadID))
         curTime = time.time()
         distM = self.matrix[self.sfrom].dot(
                     self.matrix[self.sto].T).todense()
@@ -68,8 +68,8 @@ class myThread (multiprocessing.Process):
 
         # np.savetxt(self.fo, distM, fmt = '%d')
         np.save(self.fo + '.npy', distM)
-        print('[LOG]: thread %d finished after %d' %
-              (self.threadID, time.time() - curTime))
+        print(('[LOG]: thread %d finished after %d' %
+              (self.threadID, time.time() - curTime)))
 
         # self.pr.disable()
         # # sortby = 'cumulative'
@@ -105,7 +105,7 @@ def getSparseMatrix(idfMap, fromSids, toSids, inputPath):
 
     # to maintain consistency with previous implementation, round the
     # result after applying idf
-    matrix = np.floor(matrix)
+    matrix = matrix.floor()
 
     # apply normalization to the matrix
     matrix = preprocessing.normalize(matrix, copy=False)
@@ -128,11 +128,11 @@ def calDist(inputPath, sidsPath, outputPath, tmpPrefix='', idfMapPath=None):
           - if the idf for each pattern is already computed, provide a path
           to avoid repeated computation
     """
-    print('[LOG]: %s computing matrix for %s' % (datetime.datetime.now(),
-                                                 sidsPath.split('sid_')[0]))
+    print(('[LOG]: %s computing matrix for %s' % (datetime.datetime.now(),
+                                                 sidsPath.split('sid_')[0])))
     # read the ngram file, generate a node list
     lineNum = 1
-    sids = cPickle.load(open(sidsPath))
+    sids = pickle.load(open(sidsPath))
 
     fromSids = set(sids[0])
     # in principle the toSids should be all sids
@@ -142,7 +142,7 @@ def calDist(inputPath, sidsPath, outputPath, tmpPrefix='', idfMapPath=None):
 
     # get the idfMap, if provided
     if (idfMapPath):
-        idfMap = cPickle.load(open(idfMapPath))
+        idfMap = pickle.load(open(idfMapPath))
     else:
         idfMap = None
 
@@ -154,8 +154,8 @@ def calDist(inputPath, sidsPath, outputPath, tmpPrefix='', idfMapPath=None):
     else:
         step = len(fromSids) / THREAD_NUM + 1
 
-    print('[LOG]: %s preprocessing takes %.4fs' %
-          (datetime.datetime.now(), time.time() - startTime))
+    print(('[LOG]: %s preprocessing takes %.4fs' %
+          (datetime.datetime.now(), time.time() - startTime)))
 
     tid = 0
     threads = []
@@ -215,7 +215,7 @@ def partialMatrix(sids, idfMap, ngramPath, tmpPrefix, outputPath,
         step = total / len(servers) + 1
     processes = []
     start = 0
-    cPickle.dump(idfMap, open('%s%sidf.pkl' % (outputPath, tmpPrefix), 'w'))
+    pickle.dump(idfMap, open('%s%sidf.pkl' % (outputPath, tmpPrefix), 'w'))
 
     # if number of tasks is small enough, run it locally
     if total < MIN_SERVER:
@@ -224,9 +224,9 @@ def partialMatrix(sids, idfMap, ngramPath, tmpPrefix, outputPath,
     for server in servers:
         if (start >= total):
             break
-        cPickle.dump([sids[start:start+step], sids], open('%s%ssid_%s.pkl' %
+        pickle.dump([sids[start:start+step], sids], open('%s%ssid_%s.pkl' %
                      (outputPath, tmpPrefix, server), 'w'))
-        print('[LOG]: starting in %s for %s' % (server, tmpPrefix))
+        print(('[LOG]: starting in %s for %s' % (server, tmpPrefix)))
         if server == 'localhost':
             calDist(ngramPath, '%s%ssid_%s.pkl' %
                     (outputPath, tmpPrefix, server),
@@ -246,21 +246,21 @@ def partialMatrix(sids, idfMap, ngramPath, tmpPrefix, outputPath,
     for process in processes:
         process.wait()
 
-    print('[LOG]: %s merge started for %s%s' %
-          (datetime.datetime.now(), outputPath, tmpPrefix))
+    print(('[LOG]: %s merge started for %s%s' %
+          (datetime.datetime.now(), outputPath, tmpPrefix)))
 
     files = sorted(glob.glob('%s%sdist_*' % (outputPath, tmpPrefix)),
                    key=lambda x: int(x.split('_')[-1][:-4]))
 
     matrix = np.concatenate(tuple([np.load(file) for file in files]))
-    print('[LOG]: %s merge finished for %s%s' % (
-        datetime.datetime.now(), outputPath, tmpPrefix))
+    print(('[LOG]: %s merge finished for %s%s' % (
+        datetime.datetime.now(), outputPath, tmpPrefix)))
 
     for fname in glob.glob('%s%s*' % (outputPath, tmpPrefix)):
         os.remove(fname)
     # print('[LOG]: all tmp files removed for %s%s' % (outputPath, tmpPrefix))
-    print('[LOG]: %s matrix computation finished for %s%s' % (
-        datetime.datetime.now(), outputPath, tmpPrefix))
+    print(('[LOG]: %s matrix computation finished for %s%s' % (
+        datetime.datetime.now(), outputPath, tmpPrefix)))
 
     return matrix
 
@@ -288,7 +288,7 @@ def ngramToMatrix(inputPath, asids):
         # empty tail
         line = line[:-1].split(')')
         curSeq = [(item[0], int(item[1])) for item in
-                  map(lambda x: x.split('('), line)]
+                  [x.split('(') for x in line]]
 
         for feature, value in curSeq:
             # records.append((sid, feature, value))
